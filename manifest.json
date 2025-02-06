@@ -1,0 +1,26 @@
+{
+    "manifest_version": 3,
+    "name": "page-pilot",
+    "version": "1.0.0",
+    
+    "side_panel": {
+        "default_path": "index.html"
+    },
+    
+    "permissions": [
+        "sidePanel",
+        "tabs"
+    ],
+    
+    "host_permissions": [
+        "<all_urls>"
+    ],
+    
+    "background": {
+        "service_worker": "src/background.js"
+    },
+    
+    "action": {
+        "default_icon": "icon.png"
+    }
+}
