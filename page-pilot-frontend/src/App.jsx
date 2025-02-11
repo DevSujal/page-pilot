@@ -15,7 +15,7 @@ function App() {
   const handleResponse = async (query) => {
     try {
       const response = await axios.post("http://127.0.0.1:5000/query", {
-        session_id: "2", // use actual session id here
+        session_id: 1, // use actual session id here
         query: query,
       });
       console.log(response)

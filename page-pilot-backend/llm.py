@@ -9,12 +9,13 @@ from langchain_community.vectorstores import Chroma
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain.docstore.document import Document
 import re
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 # Dictionary to hold per-session assistant instances.
 assistant_sessions = {}
 
 
-def initialize_assistant_for_session(session_id: str, page_content: str = None):
+def initialize_assistant_for_session(session_id: str, page_content: str = ""):
     """
     Initializes a new assistant instance for a given session.
     If the session already exists, returns the existing instance.
@@ -154,24 +155,11 @@ def initialize_assistant_for_session(session_id: str, page_content: str = None):
 
     # If page content is provided, add it as a Document.
     if page_content:
-        sample_docs.append(Document(page_content=page_content))
+        splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        chunks = splitter.split_text(page_content)
+        sample_docs = [Document(page_content=chunk) for chunk in chunks]
     else:
         sample_docs.append(Document(page_content="No page content provided."))
-
-    # Add additional default documents.
-    sample_docs.extend(
-        [
-            Document(
-                page_content="This document explains HTML structure and proper usage of tags like <div> and <p>."
-            ),
-            Document(
-                page_content="This document provides guidelines for styling a narrow side panel using inline CSS and predefined classes."
-            ),
-            Document(
-                page_content="This document details how to perform safe HTML modifications and annotations for browser extensions."
-            ),
-        ]
-    )
 
     embeddings = GoogleGenerativeAIEmbeddings(
         model="models/embedding-001", google_api_key=os.environ["GOOGLE_API_KEY"]
@@ -226,6 +214,23 @@ def get_assistant_answer_for_session(session_id: str, query: str) -> str:
 app = Flask(__name__)
 
 
+@app.route("/disconnect", methods=["POST"])
+def disconnect():
+    global assistant_sessions
+    data = request.get_json()
+    session_id = data.get("session_id")
+    if not session_id:
+        return jsonify({"error": "No session_id provided."}), 400
+    try:
+        assistant_sessions.pop(session_id)
+        return (
+            jsonify({"status": f"Assistant disconnected for session '{session_id}'."}),
+            200,
+        )
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/initialize", methods=["POST"])
 def initialize():
     """
@@ -250,11 +255,13 @@ def initialize():
 
 @app.route("/query", methods=["POST"])
 def query():
+    global assistant_sessions
     """
     Expects JSON:
       { "session_id": "unique-session-identifier", "query": "User query text" }
     Returns the assistant's answer based on the session-specific context.
     """
+
     data = request.get_json()
     session_id = data.get("session_id")
     query_text = data.get("query")
