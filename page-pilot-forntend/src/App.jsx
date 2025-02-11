@@ -1,34 +1,53 @@
 // App.jsx
 import { useState } from "react";
+import axios from "axios";
 import Header from "./components/Header";
 import ChatWindow from "./components/ChatWindow";
 import InputArea from "./components/InputArea";
 import ThemeToggle from "./components/ThemeToggle";
 
 function App() {
-  const [messages, setMessages] = useState([{}]);
+  const [messages, setMessages] = useState([]);
   const [inputText, setInputText] = useState("");
   const [isDark, setIsDark] = useState(true);
 
-  const handleResponse = () => {
-    
-  }
+  // Updated handleResponse function using axios
+  const handleResponse = async (query) => {
+    try {
+      const response = await axios.post("http://127.0.0.1:5000/query", {
+        session_id: "2", // use actual session id here
+        query: query,
+      });
+      console.log(response)
+      return response.data.answer;
+    } catch (error) {
+      console.error(error);
+      return "Error fetching answer";
+    }
+  };
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!inputText.trim()) {
       return;
     }
     const newMessage = {
       id: Date.now(),
-      input: inputText,
-      sender: "user",
+      query: inputText,
+      response: "",
     };
     setMessages([...messages, newMessage]);
     setInputText("");
 
     // Simulate a response from the llm
-
-
+    const response = await handleResponse(inputText);
+    setMessages((prevMessages) =>
+      prevMessages.map((message) => {
+        if (message.id === newMessage.id) {
+          return { ...message, response };
+        }
+        return message;
+      })
+    );
   };
 
   return (

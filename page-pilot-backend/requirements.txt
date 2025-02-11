@@ -1,0 +1,7 @@
+flask
+langchain
+langchain-groq
+langchain_community
+langchain-google-genai
+chromadb
+google-generativeai
