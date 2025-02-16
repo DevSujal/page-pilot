@@ -1,10 +1,10 @@
 (() => {
-  let pageContent = document.body.innerText;
-  console.log("Extracted Content:", pageContent);
-})();
-
-if (!window.hasSentInitialization) {
+  if (!window.hasSentInitialization) {
     window.hasSentInitialization = true;
-    chrome.runtime.sendMessage({ content: document.body.innerText });
-}
-  
+    console.log("Sending page content to background script");
+    const pageContent = String(document.body.innerText);
+    chrome.runtime.sendMessage({
+      page_content: pageContent,
+    });
+  }
+})();

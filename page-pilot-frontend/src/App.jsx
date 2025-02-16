@@ -12,13 +12,12 @@ function App() {
   const [isDark, setIsDark] = useState(true);
 
   // Updated handleResponse function using axios
-  const handleResponse = async (query) => {
+  const handleResponse = async (query, url) => {
     try {
-      const response = await axios.post("http://127.0.0.1:5000/query", {
-        session_id: 1, // use actual session id here
+      const response = await axios.post(url, {
+        session_id: "1", // use actual session id here
         query: query,
       });
-      console.log(response)
       return response.data.answer;
     } catch (error) {
       console.error(error);
@@ -39,7 +38,7 @@ function App() {
     setInputText("");
 
     // Simulate a response from the llm
-    const response = await handleResponse(inputText);
+    const response = await handleResponse(inputText, "http://127.0.0.1:5000/query");
     setMessages((prevMessages) =>
       prevMessages.map((message) => {
         if (message.id === newMessage.id) {
@@ -49,6 +48,7 @@ function App() {
       })
     );
   };
+
 
   return (
     <div
