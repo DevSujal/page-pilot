@@ -12,6 +12,8 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from flask_cors import CORS
 
 # Dictionary to hold per-session assistant instances.
+
+
 assistant_sessions = {}
 chat = None
 memory = None
